@@ -113,3 +113,9 @@ end,
 		end)
 	end
 end)
+
+function SendWebhookMessage(webhook,message)
+	if webhook ~= "false" then
+		PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({content = message}), { ['Content-Type'] = 'application/json' })
+	end
+end
