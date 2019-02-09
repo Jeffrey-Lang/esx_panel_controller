@@ -15,6 +15,7 @@ CREATE TABLE `user_reports` (
   `report_comment` varchar(255) NULL,
   `report_admin` varchar(255) NULL,
   `report_time` varchar(255),
+  `userid` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 );
 
