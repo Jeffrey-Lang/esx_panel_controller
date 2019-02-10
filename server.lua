@@ -99,16 +99,17 @@ end,
 				reason = result[i].reason
 				xPlayer.kick(reason)
 
-				if Config.EnableDiscord then
-					SendWebhookMessage(Config.Webhook,string.format('```Player Kicked: ' ..playerName.. ' | ' ..reason.. ' ```'))
-				end
-
 				MySQL.Async.execute("DELETE FROM kicks WHERE steamid = '@identifier' ",
 					{
 						['@identifier'] =  identifier
 					},
 					function(result)
 				end)
+						
+				if Config.EnableDiscord then
+					SendWebhookMessage(Config.Webhook,string.format('```Player Kicked: ' ..playerName.. ' | ' ..reason.. ' ```'))
+				end
+						
 			end
 		end)
 	end
