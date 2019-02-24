@@ -89,7 +89,7 @@ end,
 	local reason = '';
 	if xPlayer ~= nil then
 		local identifier =  xPlayer.identifier
-		MySQL.Async.fetchAll('SELECT * FROM kicks WHERE steamid = @identifier limit 1',
+		MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
 		{
 			['@identifier'] =  identifier
 		},
@@ -98,25 +98,13 @@ end,
 				kicked = result[i].kicked
 				reason = result[i].reason
 				xPlayer.kick(reason)
-
-				MySQL.Async.execute("DELETE FROM kicks WHERE steamid = '@identifier' ",
+				MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
 					{
 						['@identifier'] =  identifier
 					},
 					function(result)
 				end)
-						
-				if Config.EnableDiscord then
-					SendWebhookMessage(Config.Webhook,string.format('```Player Kicked: ' ..playerName.. ' | ' ..reason.. ' ```'))
-				end
-						
 			end
 		end)
 	end
 end)
-
-function SendWebhookMessage(webhook,message)
-	if webhook ~= "false" then
-		PerformHttpRequest(webhook, function(err, text, headers) end, 'POST', json.encode({content = message}), { ['Content-Type'] = 'application/json' })
-	end
-end
