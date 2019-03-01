@@ -10,7 +10,7 @@ CREATE TABLE `user_warnings` (
 
 CREATE TABLE `user_reports` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `reported_by` int(11) NULL,
+  `reported_by` varchar(90) NULL,
   `report_type` varchar(255) NULL,
   `report_comment` varchar(255) NULL,
   `report_admin` varchar(255) NULL,
