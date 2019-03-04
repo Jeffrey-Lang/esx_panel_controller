@@ -1,3 +1,2 @@
 Config = {}
-Config.EnableDiscord = false
-Config.Webhook = 'Your Discordwebhook';
+Config.Server = 1; -- DO NOT user 0 as server id

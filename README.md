@@ -1,2 +1,4 @@
-# admin_panel_helper-SG
-Requirement for the FiveM Admin Panel 
+# esx_panel_controller
+Requirement for the ESX Admin Panel
+
+Free to use for https://esx-panel.com

@@ -3,7 +3,7 @@ local ESX = nil
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
 AddEventHandler('onMySQLReady', function()
-	MySQL.Async.execute('UPDATE users SET online = 0  WHERE online = 1',{ },
+	MySQL.Async.execute('UPDATE users SET online = 0, server = 0  WHERE online = 1 AND server = @server',{ ['@server'] = Config.Server },
 	function (result)
 		print('All users have been set to offline')
 	end)
@@ -15,9 +15,10 @@ ESX.RegisterServerCallback('esx_sneakstatus:Setonline', function(source)
 	local playerName = GetPlayerName(source)
 	if xPlayer ~= nil then
 		local identifier =  xPlayer.identifier
-		MySQL.Async.execute('UPDATE users SET online = 1 WHERE identifier = @identifier',
+		MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
 		{
-			['@identifier'] =  identifier
+			['@identifier'] =  identifier,
+			['@server'] =  Config.Server
 		},
 		function (result)
 		end)
