@@ -9,21 +9,22 @@ AddEventHandler('onMySQLReady', function()
 	end)
 end)
 
-ESX.RegisterServerCallback('esx_sneakstatus:Setonline', function(source)
-	local _source  = source
-	local xPlayer  = ESX.GetPlayerFromId(_source)
-	local playerName = GetPlayerName(source)
-	if xPlayer ~= nil then
-		local identifier =  xPlayer.identifier
-		MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
+AddEventHandler('playerConnecting', function (playerName,setKickReason)
+	for k,v in ipairs(GetPlayerIdentifiers(source))do
+		if string.sub(v, 1, string.len("steam:")) == "steam:" then
+			steamID = v
+		end
+	end
+	print(steamID)
+	MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
 		{
-			['@identifier'] =  identifier,
+			['@identifier'] =  steamID,
 			['@server'] =  Config.Server
 		},
 		function (result)
 		end)
-	end
 end)
+
 
 AddEventHandler('playerDropped', function(reason)
 	local pname = GetPlayerName(source)
@@ -83,29 +84,44 @@ end,
  	}
  })
 
- ESX.RegisterServerCallback('esx_autoKick', function(source)
-	local _source  = source
-	local xPlayer  = ESX.GetPlayerFromId(_source)
-	local playerName = GetPlayerName(source)
-	local reason = '';
-	if xPlayer ~= nil then
-		local identifier =  xPlayer.identifier
-		MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
+function autokick()
+	MySQL.Async.fetchAll("SELECT * FROM kicks",
 		{
-			['@identifier'] =  identifier
 		},
 		function (result)
 			for i=1, #result, 1 do
+				indentifier = result[i].identifier
 				kicked = result[i].kicked
 				reason = result[i].reason
-				xPlayer.kick(reason)
 				MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
 					{
 						['@identifier'] =  identifier
 					},
 					function(result)
-				end)
+						xPlayer = ESX.GetPlayerFromIdentifier(identifier)
+						xPlayer.kick(reason)
+					end)
 			end
 		end)
+end
+
+function loopCheckCommands()
+	autokick()
+	SetTimeout(60000, function()
+		loopCheckCommands()
+	end)
+end
+
+
+-- Global functions
+function getPlayerID(source)
+	local identifiers = GetPlayerIdentifiers(source)
+	local player = getIdentifiant(identifiers)
+	return player
+end
+
+function getIdentifiant(id)
+	for _, v in ipairs(id) do
+		return v
 	end
-end)
+end
