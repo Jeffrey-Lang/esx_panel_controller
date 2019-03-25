@@ -82,35 +82,32 @@ end,
  })
 
 ESX.RegisterServerCallback('esx_autoKick', function(source)
-	MySQL.Async.fetchAll("SELECT * FROM kicks",
-		{
-		},
-		function (result)
-			local _source  = source
-			local xPlayer  = ESX.GetPlayerFromId(_source)
-			local playerName = GetPlayerName(source)
-			local reason = '';
-			if xPlayer ~= nil then
-				local identifier =  xPlayer.identifier
-				MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
-					{
-						['@identifier'] =  identifier
-					},
-					function (result)
-						for i=1, #result, 1 do
-							kicked = result[i].kicked
-							reason = result[i].reason
-							xPlayer.kick(reason)
-							MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
-								{
-									['@identifier'] =  identifier
-								},
-								function(result)
-								end)
-						end
-					end)
-			end
-		end)
+	local _source  = source
+	local xPlayer  = ESX.GetPlayerFromId(_source)
+	local playerName = GetPlayerName(source)
+	local reason = '';
+	if xPlayer ~= nil then
+		local identifier =  xPlayer.identifier
+		MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
+			{
+				['@identifier'] =  identifier
+			},
+			function (result)
+				for i=1, #result, 1 do
+					kicked = result[i].kicked
+					reason = result[i].reason
+					xPlayer.kick(reason)
+					MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
+						{
+							['@identifier'] =  identifier
+						},
+						function(result)
+						end)
+				end
+			end)
+	end
+end)
+
 
 function loopCheckCommands()
 	autokick()
@@ -119,16 +116,3 @@ function loopCheckCommands()
 	end)
 end
 
-
--- Global functions
-function getPlayerID(source)
-	local identifiers = GetPlayerIdentifiers(source)
-	local player = getIdentifiant(identifiers)
-	return player
-end
-
-function getIdentifiant(id)
-	for _, v in ipairs(id) do
-		return v
-	end
-end
