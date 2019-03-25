@@ -9,28 +9,26 @@ AddEventHandler('onMySQLReady', function()
 	end)
 end)
 
-AddEventHandler('playerConnecting', function (playerName,setKickReason)
-	for k,v in ipairs(GetPlayerIdentifiers(source))do
-		if string.sub(v, 1, string.len("steam:")) == "steam:" then
-			steamID = v
-		end
+ESX.RegisterServerCallback('esx_sneakstatus:Setonline', function(source)
+	local _source  = source
+	local xPlayer  = ESX.GetPlayerFromId(_source)
+	local playerName = GetPlayerName(source)
+	if xPlayer ~= nil then
+		local identifier =  xPlayer.identifier
+		MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
+			{
+				['@identifier'] =  identifier,
+				['@server'] =  Config.Server
+			},
+			function (result)
+			end)
 	end
-	print(steamID)
-	MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
-		{
-			['@identifier'] =  steamID,
-			['@server'] =  Config.Server
-		},
-		function (result)
-		end)
 end)
 
 
 AddEventHandler('playerDropped', function(reason)
-	local pname = GetPlayerName(source)
 	local _source  = source
 	local xPlayer  = ESX.GetPlayerFromId(_source)
-
 	if xPlayer ~= nil then
 		local identifier =  xPlayer.identifier
 		MySQL.Async.execute('UPDATE users SET online = 0 WHERE identifier = @identifier',
@@ -40,7 +38,6 @@ AddEventHandler('playerDropped', function(reason)
 		function (result)
 		end)
 	end
-
 end)
 
 -- Report Users
@@ -84,26 +81,36 @@ end,
  	}
  })
 
-function autokick()
+ESX.RegisterServerCallback('esx_autoKick', function(source)
 	MySQL.Async.fetchAll("SELECT * FROM kicks",
 		{
 		},
 		function (result)
-			for i=1, #result, 1 do
-				indentifier = result[i].identifier
-				kicked = result[i].kicked
-				reason = result[i].reason
-				MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
+			local _source  = source
+			local xPlayer  = ESX.GetPlayerFromId(_source)
+			local playerName = GetPlayerName(source)
+			local reason = '';
+			if xPlayer ~= nil then
+				local identifier =  xPlayer.identifier
+				MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
 					{
 						['@identifier'] =  identifier
 					},
-					function(result)
-						xPlayer = ESX.GetPlayerFromIdentifier(identifier)
-						xPlayer.kick(reason)
+					function (result)
+						for i=1, #result, 1 do
+							kicked = result[i].kicked
+							reason = result[i].reason
+							xPlayer.kick(reason)
+							MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
+								{
+									['@identifier'] =  identifier
+								},
+								function(result)
+								end)
+						end
 					end)
 			end
 		end)
-end
 
 function loopCheckCommands()
 	autokick()
