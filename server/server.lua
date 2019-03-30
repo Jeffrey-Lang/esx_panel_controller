@@ -12,7 +12,6 @@ end)
 ESX.RegisterServerCallback('esx_sneakstatus:Setonline', function(source)
 	local _source  = source
 	local xPlayer  = ESX.GetPlayerFromId(_source)
-	local playerName = GetPlayerName(source)
 	if xPlayer ~= nil then
 		local identifier =  xPlayer.identifier
 		MySQL.Async.execute('UPDATE users SET online = 1, server = @server WHERE identifier = @identifier',
@@ -81,38 +80,59 @@ end,
  	}
  })
 
-ESX.RegisterServerCallback('esx_autoKick', function(source)
-	local _source  = source
-	local xPlayer  = ESX.GetPlayerFromId(_source)
-	local playerName = GetPlayerName(source)
-	local reason = '';
-	if xPlayer ~= nil then
-		local identifier =  xPlayer.identifier
-		MySQL.Async.fetchAll("SELECT * FROM kicks WHERE steamid = @identifier limit 1",
-			{
-				['@identifier'] =  identifier
-			},
-			function (result)
+---
+--- DO NOT TOUCH THIS
+--- DO NOT TOUCH THIS
+--- DO NOT TOUCH THIS
+--- DO NOT TOUCH THIS
+
+-- KickPlayer
+function kickPlayer()
+	MySQL.Async.fetchAll('SELECT * FROM kicks', {},
+		function (result)
+			if result[1] ~= nil then
 				for i=1, #result, 1 do
-					kicked = result[i].kicked
-					reason = result[i].reason
-					xPlayer.kick(reason)
-					MySQL.Async.execute("DELETE FROM kicks WHERE steamid = @identifier",
+					local steamid = result[i].steamid
+					local reason = result[i].reason
+					local kickid = result[i].id
+
+					if result[i].steamid ~= nil then
+						steamid = result[i].steamid
+					end
+					local findIdentifier = steamid
+					MySQL.Async.fetchAll('SELECT identifier,online FROM users WHERE online = @online AND identifier = @identifier',
 						{
-							['@identifier'] =  identifier
+							['@online'] = 1,
+							['@identifier'] = findIdentifier
 						},
-						function(result)
+						function (data)
+							for i=1, #data, 1 do
+								if data[i].identifier == findIdentifier then
+									local foundPlayer = ESX.GetPlayerFromIdentifier(data[i].identifier)
+									if foundPlayer ~= nil then
+										local playerServerId = foundPlayer.source
+										foundPlayer.kick(reason)
+										print(kickid)
+										MySQL.Async.execute('DELETE FROM kicks WHERE id = @id',{ ['@id'] = kickid })
+									end
+								end
+							end
 						end)
 				end
-			end)
-	end
-end)
-
+			end
+		end)
+end
+-- End Kick Player
 
 function loopCheckCommands()
-	autokick()
+	kickPlayer()
 	SetTimeout(60000, function()
 		loopCheckCommands()
 	end)
 end
+
+AddEventHandler('onMySQLReady', function()
+	loopCheckCommands()
+end)
+
 

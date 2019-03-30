@@ -8,12 +8,6 @@ Citizen.CreateThread(function()
 	end
 end)
 
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(60000)
-		ESX.TriggerServerCallback('esx_autoKick', function(source,playerID) end)
-	end
-end)
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
